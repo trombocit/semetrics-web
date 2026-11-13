@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Semetrics Web SDK — демо</title>
+  <style>
+    body { font: 15px/1.5 system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    button { margin: 4px 6px 4px 0; padding: 6px 12px; }
+    #log { background: #f4f4f5; padding: 8px 12px; border-radius: 8px; white-space: pre-wrap; font: 12px/1.4 ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <h1>Демо Web SDK</h1>
+  <p>Страница шлёт события в Semetrics, указанный в параметре <code>?endpoint=</code>, клиентским ключом из <code>?key=</code>.</p>
+  <button id="nav">SPA-переход на /t/abc12345/register</button>
+  <button id="share">track("share_clicked")</button>
+  <button id="err">Ошибка JS</button>
+  <button id="flush">flush()</button>
+  <div id="log"></div>
+  <script src="../dist/semetrics.min.js"></script>
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const log = m => { document.getElementById("log").textContent += m + "\n"; };
+    Semetrics.init({
+      key: qs.get("key"),
+      endpoint: qs.get("endpoint") || "http://localhost:8010",
+      source: "demo.local",
+      sourceVersion: "0.1.0",
+      flushIntervalMs: 2000,
+      debug: true,
+    });
+    log("init: " + Semetrics.SDK_VERSION);
+    document.getElementById("nav").onclick = () => { history.pushState(null, "", "/t/abc12345/register" + location.search); log("pushState"); };
+    document.getElementById("share").onclick = () => { Semetrics.track("share_clicked", { kind: "link" }); log("share_clicked"); };
+    document.getElementById("err").onclick = () => { setTimeout(() => { throw new Error("Boom at https://demo.local/i/secret12345 token"); }); log("error"); };
+    document.getElementById("flush").onclick = () => Semetrics.flush().then(() => log("flushed"));
+  </script>
+</body>
+</html>
